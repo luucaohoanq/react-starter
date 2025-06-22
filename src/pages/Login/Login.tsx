@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { FiMail, FiLock, FiEye, FiEyeOff, FiLoader, FiLogIn } from 'react-icons/fi'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
 import { useApp } from '../../contexts/app.context'
 import { tourService } from '../../services/tourService'
 import HelpButton from '../../components/HelpButton'
-import type { LoginCredentials } from '../../types/auth.type'
+import { loginSchema, type LoginFormData } from '../../schemas/auth.schema'
 import './Login.css'
 
 const Login: React.FC = () => {
@@ -12,17 +14,26 @@ const Login: React.FC = () => {
   const location = useLocation()
   const { login, state } = useApp()
 
-  const [formData, setFormData] = useState<LoginCredentials>({
-    email: '',
-    password: ''
-  })
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState<string>('')
+
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+    setError,
+    clearErrors
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: ''
+    }
+  })
 
   // Get the intended destination from location state
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/'
-
-  // Auto-start login tour for new users
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/' // Auto-start login tour for new users
   useEffect(() => {
     // Only auto-start if user is not authenticated and it's their first time
     // Also avoid auto-starting immediately after logout
@@ -44,30 +55,17 @@ const Login: React.FC = () => {
     }
   }, [state.isLoading])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }))
-    // Clear error when user starts typing
-    if (error) setError('')
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    if (!formData.email || !formData.password) {
-      setError('Please fill in all fields')
-      return
-    }
-
+  // Form submission handler
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(formData)
+      clearErrors()
+      await login(data)
       navigate(from, { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      setError('root.serverError', {
+        type: 'manual',
+        message: err instanceof Error ? err.message : 'Login failed'
+      })
     }
   }
 
@@ -76,11 +74,9 @@ const Login: React.FC = () => {
   }
 
   const fillDemoCredentials = () => {
-    setFormData({
-      email: 'admin@example.com',
-      password: 'admin123'
-    })
-    setError('')
+    setValue('email', 'admin@example.com')
+    setValue('password', 'admin123')
+    clearErrors()
   }
 
   return (
@@ -94,8 +90,9 @@ const Login: React.FC = () => {
             <p>Sign in to your account to continue</p>
           </div>
 
-          <form onSubmit={handleSubmit} className='login-form'>
-            {error && <div className='error-message'>{error}</div>}
+          <form onSubmit={handleSubmit(onSubmit)} className='login-form'>
+            {/* Display server errors */}
+            {errors.root?.serverError && <div className='error-message'>{errors.root.serverError.message}</div>}
 
             <div className='form-group'>
               <label htmlFor='email'>Email Address</label>
@@ -104,14 +101,12 @@ const Login: React.FC = () => {
                 <input
                   type='email'
                   id='email'
-                  name='email'
-                  value={formData.email}
-                  onChange={handleChange}
                   placeholder='Enter your email'
-                  disabled={state.isLoading}
-                  required
+                  disabled={state.isLoading || isSubmitting}
+                  {...register('email')}
                 />
               </div>
+              {errors.email && <div className='field-error'>{errors.email.message}</div>}
             </div>
 
             <div className='form-group'>
@@ -121,26 +116,24 @@ const Login: React.FC = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id='password'
-                  name='password'
-                  value={formData.password}
-                  onChange={handleChange}
                   placeholder='Enter your password'
-                  disabled={state.isLoading}
-                  required
+                  disabled={state.isLoading || isSubmitting}
+                  {...register('password')}
                 />
                 <button
                   type='button'
                   className='password-toggle'
                   onClick={togglePasswordVisibility}
-                  disabled={state.isLoading}
+                  disabled={state.isLoading || isSubmitting}
                 >
                   {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
+              {errors.password && <div className='field-error'>{errors.password.message}</div>}
             </div>
 
-            <button type='submit' className='login-button' disabled={state.isLoading}>
-              {state.isLoading ? (
+            <button type='submit' className='login-button' disabled={state.isLoading || isSubmitting}>
+              {state.isLoading || isSubmitting ? (
                 <>
                   <FiLoader className='loading-spinner' />
                   Signing In...
@@ -154,7 +147,12 @@ const Login: React.FC = () => {
             </button>
 
             <div className='demo-section'>
-              <button type='button' className='demo-button' onClick={fillDemoCredentials} disabled={state.isLoading}>
+              <button
+                type='button'
+                className='demo-button'
+                onClick={fillDemoCredentials}
+                disabled={state.isLoading || isSubmitting}
+              >
                 Fill Demo Credentials
               </button>
               <p className='demo-info'>Use: admin@example.com / admin123</p>

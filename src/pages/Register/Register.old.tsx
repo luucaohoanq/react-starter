@@ -65,7 +65,9 @@ const Register: React.FC = () => {
 
           <form onSubmit={handleSubmit(onSubmit)} className='register-form'>
             {/* Display server errors */}
-            {errors.root?.serverError && <div className='error-message'>{errors.root.serverError.message}</div>}
+            {errors.root?.serverError && (
+              <div className='error-message'>{errors.root.serverError.message}</div>
+            )}
 
             <div className='form-group'>
               <label htmlFor='name'>Full Name</label>
