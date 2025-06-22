@@ -20,23 +20,42 @@ const generateToken = (type: 'access' | 'refresh') => {
   return `${type}_${timestamp}_${random}`
 }
 
-// Default admin user for demo
-const defaultUser: User = {
-  id: '1',
-  email: 'admin@example.com',
-  name: 'Admin User',
-  avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-  role: 'admin',
-  createdAt: '2024-01-01T00:00:00.000Z',
-  updatedAt: '2024-01-01T00:00:00.000Z'
-}
+// Default users for demo
+const defaultUsers = [
+  {
+    user: {
+      id: '1',
+      email: 'admin@example.com',
+      name: 'Admin User',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      role: 'admin' as const,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z'
+    },
+    password: 'admin123'
+  },
+  {
+    user: {
+      id: '2',
+      email: 'john@example.com',
+      name: 'John Doe',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      role: 'user' as const,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z'
+    },
+    password: 'password123'
+  }
+]
 
-// Initialize with default user
-registeredUsers.set('admin@example.com', {
-  user: defaultUser,
-  password: 'admin123',
-  accessToken: generateToken('access'),
-  refreshToken: generateToken('refresh')
+// Initialize with default users
+defaultUsers.forEach(({ user, password }) => {
+  registeredUsers.set(user.email, {
+    user,
+    password,
+    accessToken: generateToken('access'),
+    refreshToken: generateToken('refresh')
+  })
 })
 
 export const handlers = [
@@ -80,6 +99,7 @@ export const handlers = [
         success: true
       })
     } catch (error) {
+      console.error('Login error:', error)
       return HttpResponse.json(
         {
           data: null,
@@ -176,6 +196,7 @@ export const handlers = [
         success: true
       })
     } catch (error) {
+      console.error('Registration error:', error)
       return HttpResponse.json(
         {
           data: null,
@@ -234,6 +255,7 @@ export const handlers = [
         success: true
       })
     } catch (error) {
+      console.error('Token refresh error:', error)
       return HttpResponse.json(
         {
           data: null,

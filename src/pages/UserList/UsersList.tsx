@@ -197,7 +197,7 @@ const UsersList = () => {
       </div>
 
       {/* Users Grid */}
-      <div className='users-grid'>
+      <div className='users-grid users-table'>
         {filteredUsers.map((user) => (
           <div key={user.id} className='user-card'>
             <div className='user-header'>

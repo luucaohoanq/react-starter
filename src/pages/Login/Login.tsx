@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { FiMail, FiLock, FiEye, FiEyeOff, FiLoader, FiLogIn } from 'react-icons/fi'
 import { useApp } from '../../contexts/app.context'
+import { tourService } from '../../services/tourService'
+import HelpButton from '../../components/HelpButton'
 import type { LoginCredentials } from '../../types/auth.type'
 import './Login.css'
 
@@ -19,6 +21,28 @@ const Login: React.FC = () => {
 
   // Get the intended destination from location state
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/'
+
+  // Auto-start login tour for new users
+  useEffect(() => {
+    // Only auto-start if user is not authenticated and it's their first time
+    // Also avoid auto-starting immediately after logout
+    if (!state.isAuthenticated && !state.isLoading && tourService.isNewUser()) {
+      // Small delay to ensure the DOM is ready and user didn't just logout
+      const timer = setTimeout(() => {
+        tourService.startTour('login')
+      }, 1000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [state.isAuthenticated, state.isLoading])
+
+  // Force focus on email field when component mounts (helps with accessibility and ensures field is interactive)
+  useEffect(() => {
+    const emailField = document.getElementById('email')
+    if (emailField && !state.isLoading) {
+      emailField.focus()
+    }
+  }, [state.isLoading])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -61,6 +85,7 @@ const Login: React.FC = () => {
 
   return (
     <div className='login-page'>
+      <HelpButton />
       <div className='login-container'>
         <div className='login-card'>
           <div className='login-header'>

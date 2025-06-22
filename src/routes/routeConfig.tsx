@@ -9,6 +9,7 @@ const Home = lazy(() => import('../pages/Home'))
 const About = lazy(() => import('../pages/About/About'))
 const UsersList = lazy(() => import('../pages/UserList/UsersList'))
 const UserProfile = lazy(() => import('../pages/UserProfile/UserProfile'))
+const Profile = lazy(() => import('../pages/Profile'))
 const Login = lazy(() => import('../pages/Login'))
 const Register = lazy(() => import('../pages/Register'))
 
@@ -56,9 +57,19 @@ export const routes: RouteObject[] = [
         )
       },
       {
-        path: 'users',
+        path: 'profile',
         element: (
           <ProtectedRoute requireAuth={true}>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Profile />
+            </Suspense>
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: 'users',
+        element: (
+          <ProtectedRoute requireAuth={true} adminOnly={true}>
             <Suspense fallback={<LoadingSpinner />}>
               <UsersList />
             </Suspense>
@@ -68,7 +79,7 @@ export const routes: RouteObject[] = [
       {
         path: 'users/:userId',
         element: (
-          <ProtectedRoute requireAuth={true}>
+          <ProtectedRoute requireAuth={true} adminOnly={true}>
             <Suspense fallback={<LoadingSpinner />}>
               <UserProfile />
             </Suspense>

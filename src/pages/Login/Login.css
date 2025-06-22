@@ -60,6 +60,7 @@
 }
 
 .input-wrapper {
+    color: black;
   position: relative;
   display: flex;
   align-items: center;

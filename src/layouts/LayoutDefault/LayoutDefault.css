@@ -6,48 +6,20 @@
   background-color: #f8fafc;
 }
 
-/* Header */
-.header {
-  background-color: #ffffff;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.header-content {
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 2rem 1rem;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 4rem;
+  width: 100%;
 }
 
-/* Logo */
-.logo-link {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: #1f2937;
-  font-weight: 600;
-  font-size: 1.25rem;
-}
-
-.logo-icon {
-  margin-right: 0.5rem;
-  font-size: 1.5rem;
-}
-
-.logo-text {
-  color: #1f2937;
-}
-
-/* Desktop Navigation */
-.desktop-nav {
-  display: none;
-  gap: 2rem;
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
 }
 
 .nav-link {

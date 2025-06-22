@@ -125,6 +125,52 @@ src/
 
 - **Button**: Reusable button component with variants and loading states
 - **Input**: Form input component (ready for expansion)
+- **HelpButton**: Interactive help system with guided tours
+- **LoadingSpinner**: Consistent loading states
+- **ErrorBoundary**: Error handling and recovery
+
+## 🎯 Guided Tours System
+
+The application includes a comprehensive **Shepherd.js** tour system that provides interactive guidance:
+
+### Available Tours
+
+1. **Login Tour** 🔐
+
+   - **When**: Auto-starts for first-time visitors on login page
+   - **Access**: Click the Help button (?) on login page
+   - **Content**: Login form walkthrough, demo credentials, and getting started guide
+
+2. **Welcome Tour** 🎉
+
+   - **When**: Auto-starts after first login for new users
+   - **Access**: Via HelpButton from any authenticated page
+   - **Content**: App overview, navigation, and role-specific features
+
+3. **Profile Tour** 👤
+
+   - **When**: Available on profile page
+   - **Access**: Via HelpButton when on `/profile`
+   - **Content**: Profile management and customization options
+
+4. **Admin Tour** 👑
+
+   - **When**: Available to admins on users page
+   - **Access**: Via HelpButton when on `/users` (admin only)
+   - **Content**: User management and admin features
+
+5. **Features Tour** ✨
+   - **When**: Available anytime
+   - **Access**: Via HelpButton from any page
+   - **Content**: Technical features and modern development practices
+
+### Tour Features
+
+- **Smart Auto-Start**: Tours automatically start for new users in appropriate contexts
+- **Completion Tracking**: Prevents repetitive tours, with option to replay
+- **Role-Aware**: Different content for admin vs regular users
+- **Responsive**: Works on all screen sizes
+- **Accessible**: Keyboard navigation and screen reader friendly
 
 ## 📊 Demo Data
 
@@ -288,46 +334,89 @@ Consider adding:
 ### Available Demo Credentials
 
 **Admin User:**
+
 ```
 Email: admin@example.com
 Password: admin123
 Role: admin
+Access: Full system access including user management
 ```
 
 **Regular User:**
+
 ```
 Email: john@example.com
 Password: password123
 Role: user
+Access: Personal profile only
 ```
 
-**Or register a new account with any valid email/password combination.**
+**Or register a new account with any valid email/password combination (defaults to 'user' role).**
+
+### Role-Based Access Control
+
+#### **Admin Privileges:**
+
+- ✅ Access personal profile (`/profile`)
+- ✅ View all users (`/users`)
+- ✅ View individual user details (`/users/:userId`)
+- ✅ Admin navigation items visible
+- ✅ Special admin badge and menu options
+
+#### **User Privileges:**
+
+- ✅ Access personal profile (`/profile`)
+- ❌ Cannot access user management pages
+- ❌ Users navigation hidden
+- ✅ User badge and profile-only menu
+
+### Component Architecture
+
+The application now uses extracted components:
+
+- **Header Component**: Responsive navigation with role-based items
+- **Footer Component**: Role-aware footer with appropriate links
+- **LayoutDefault**: Simplified layout container
+- **Profile Page**: Role-specific profile information
 
 ### Authentication Features
 
-1. **Route Protection**: `/users` and `/users/:userId` routes require authentication
+1. **Route Protection**:
+   - `/profile` requires authentication (any user)
+   - `/users` and `/users/:userId` require admin role
 2. **Persistent Login**: Authentication state preserved in localStorage
 3. **Automatic Redirects**: Redirect to login when accessing protected routes, then back to intended destination
 4. **Token Management**: Automatic token refresh and logout on expiry
-5. **Responsive Navigation**: Shows different menu items based on authentication state
+5. **Role-Based Navigation**: Shows different menu items based on user role and authentication state
 
-### Testing Authentication
+### Testing Role-Based Access
 
-1. **Access Protection Test:**
-   - Visit `/users` without logging in → redirected to `/login`
-   - Login → redirected back to `/users`
+1. **Admin Access Test:**
 
-2. **Navigation Test:**
+   - Login as admin → see Users link in navigation
+   - Visit `/users` → access granted
+   - User menu shows admin badge and "Manage Users" option
+
+2. **User Access Test:**
+
+   - Login as regular user → no Users link visible
+   - Try to visit `/users` directly → access denied with clear message
+   - User menu shows user badge and profile option only
+
+3. **Navigation Test:**
+
    - Not authenticated: Home, About, Login, Register buttons visible
-   - Authenticated: Home, About, Users links + user menu with logout
+   - User authenticated: Home, About, Profile links + user menu
+   - Admin authenticated: Home, About, Profile, Users links + admin menu
 
-3. **Persistence Test:**
-   - Login → refresh page → still logged in
-   - Logout → users routes become inaccessible
+4. **Persistence Test:**
+   - Login → refresh page → still logged in with correct role
+   - Logout → role-protected routes become inaccessible
 
 ### Lazy Loading & Code Splitting
 
 All pages are lazy loaded using React.lazy and Suspense:
+
 - Each route loads its JavaScript chunk on demand
 - Loading spinner shown during chunk loading
 - Check Network tab in DevTools to see dynamic imports
